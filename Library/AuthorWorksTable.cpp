@@ -3,7 +3,7 @@
 #include <afxtempl.h>
 #include <tchar.h>
 #include <afxdb.h>
-
+#include "MemoryManager.h"
 
 CAuthorWorksTable::CAuthorWorksTable()
 {
@@ -17,7 +17,7 @@ CAuthorWorksTable::~CAuthorWorksTable()
 
 BOOL CAuthorWorksTable::SelectWhereID(CTypedPtrArray<CPtrArray, AUTHOR_WORKS*>& oArray, CSession oSession, long lAuthorID)
 {
-	oArray.RemoveAll();
+	CMemoryManager::FreeMemoryFromArray(oArray, oArray.GetCount());
 
 	CString strQuery;
 	strQuery.Format(_T("SELECT * FROM AUTHOR_WORKS WHERE AUTHOR_ID = %d"), lAuthorID);
@@ -26,12 +26,10 @@ BOOL CAuthorWorksTable::SelectWhereID(CTypedPtrArray<CPtrArray, AUTHOR_WORKS*>& 
 
 	while (MoveNext() == S_OK)
 	{
-		AUTHOR_WORKS* pAuthor = new AUTHOR_WORKS;
-		pAuthor->lID = m_recRecord.lID;
-		pAuthor->lAuthorID = m_recRecord.lAuthorID;
-		pAuthor->szName = _wcsdup(m_recRecord.szName);
+		AUTHOR_WORKS* pAuthorWorks = DEBUG_NEW AUTHOR_WORKS;
+		*pAuthorWorks = m_recRecord;
 
-		oArray.Add(pAuthor);
+		oArray.Add(pAuthorWorks);
 	}
 
 	CCommand::Close();

@@ -74,6 +74,8 @@ BOOL CNameOnlyDialog::OnInitDialog()
 		m_edbName.SetWindowTextW(m_strName);
 	}
 
+	m_edbName.SetLimitText(50);
+
 	return TRUE;  // return TRUE  unless you set the focus to a control
 }
 

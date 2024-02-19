@@ -5,7 +5,7 @@
 struct AUTHORS
 {
 	long lID;
-	LPCWSTR szName;
+	TCHAR szName[51];
 
 	AUTHORS()
 	{
@@ -17,7 +17,7 @@ struct AUTHOR_WORKS
 {
 	long lID;
 	long lAuthorID;
-	LPCWSTR szName;
+	TCHAR szName[51];
 
 	AUTHOR_WORKS()
 	{

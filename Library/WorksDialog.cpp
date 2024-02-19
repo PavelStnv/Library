@@ -3,6 +3,7 @@
 #include "resource.h"
 #include "AuthorWorksTable.h"
 #include "AuthorsTable.h"
+#include "MemoryManager.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -18,7 +19,7 @@ WorksDialog::WorksDialog(CSession oSession, CDataSource oDataSource, CString aut
 
 WorksDialog::~WorksDialog()
 {
-	m_oArray.RemoveAll();
+	CMemoryManager::FreeMemoryFromArray(m_oArray, m_oArray.GetCount());
 }
 
 void WorksDialog::DoDataExchange(CDataExchange* pDX)
@@ -73,6 +74,7 @@ BOOL WorksDialog::OnInitDialog()
 	m_oAuthorName = (CEdit*)GetDlgItem(IDC_EDB_AUTHOR_NAME2);
 	m_oAuthorName->SetWindowTextW(m_strAuthorName);
 	m_oAuthorName->EnableWindow(FALSE);
+	m_oAuthorName->SetLimitText(50);
 	m_eAuthorNameState = AuthorNameStateNotEditting;
 
 	return TRUE;  // return TRUE  unless you set the focus to a control
@@ -137,6 +139,7 @@ void WorksDialog::FillLSBWithArray()
 
 void WorksDialog::ResetListBox()
 {
+	CMemoryManager::FreeMemoryFromArray(m_oArray, m_oArray.GetCount());
 	m_oArray.RemoveAll();
 	FillArray(m_lCurrentAuthorID);
 	FillLSBWithArray();
@@ -151,7 +154,7 @@ void WorksDialog::OnBnClickedEdbAddWork()
 	{
 		AUTHOR_WORKS oAuthorWorks;
 		oAuthorWorks.lAuthorID = m_lCurrentAuthorID;
-		oAuthorWorks.szName = m_oNameOnlyDialog.m_strName;
+		_tcscpy_s(oAuthorWorks.szName, m_oNameOnlyDialog.m_strName);
 
 		m_oSession.Open(m_oDataSource);
 
@@ -207,7 +210,8 @@ void WorksDialog::OnBnClickedEdbEditWork()
 		AUTHOR_WORKS oAuthorWorks;
 		oAuthorWorks.lAuthorID = m_lCurrentAuthorID;
 		oAuthorWorks.lID = curSelID;
-		oAuthorWorks.szName = m_oNameOnlyDialog.m_strName;
+		_tcscpy_s(oAuthorWorks.szName, m_oNameOnlyDialog.m_strName);
+
 
 		m_oSession.Open(m_oDataSource);
 
@@ -232,8 +236,7 @@ void WorksDialog::OnBnClickedBtnDeleteAllWorks()
 
 		m_oSession.Close();
 
-		m_oArray.RemoveAll();
-		m_oWorksListBox->ResetContent();
+		ResetListBox();
 	}
 }
 

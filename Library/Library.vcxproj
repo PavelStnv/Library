@@ -188,6 +188,7 @@
     <ClInclude Include="framework.h" />
     <ClInclude Include="Library.h" />
     <ClInclude Include="LibraryDlg.h" />
+    <ClInclude Include="MemoryManager.h" />
     <ClInclude Include="NameOnlyDialog.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="Resource.h" />

@@ -11,6 +11,7 @@
 #include <afxtempl.h>
 #include "WorksDialog.h"
 #include "Structures.h"
+#include "MemoryManager.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -211,7 +212,7 @@ void CLibraryDlg::OnBnClickedBtnSearch()
 		MessageBox(_T("Няма открити автори с това име."), _T("Съобщение"), MB_OK | MB_ICONINFORMATION);
 	}
 
-	oAuthorsArray.RemoveAll();
+	CMemoryManager::FreeMemoryFromArray(oAuthorsArray, oAuthorsArray.GetCount());
 	m_oSession.Close();
 }
 
@@ -264,7 +265,7 @@ void CLibraryDlg::OnBnClickedBtnAddAuthor()
 	if (m_oNameOnlyDialog.DoModal() == IDOK)
 	{
 		AUTHORS oAuthor;
-		oAuthor.szName = m_oNameOnlyDialog.m_strName;
+		_tcscpy_s(oAuthor.szName, m_oNameOnlyDialog.m_strName);
 
 		m_oSession.Open(m_oDataSource);
 

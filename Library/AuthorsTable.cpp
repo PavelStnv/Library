@@ -4,7 +4,7 @@
 #include <afxtempl.h>
 #include <tchar.h>
 #include <afxdb.h>
-
+#include "MemoryManager.h"
 
 CAuthorsTable::CAuthorsTable()
 {
@@ -25,9 +25,8 @@ BOOL CAuthorsTable::SelectAll(CTypedPtrArray<CPtrArray, AUTHORS*>& oArray, CSess
 
 	while (MoveNext() == S_OK)
 	{
-		AUTHORS* pAuthor = new AUTHORS;
-		pAuthor->lID = m_recRecord.lID;
-		pAuthor->szName = _wcsdup(m_recRecord.szName);
+		AUTHORS* pAuthor = DEBUG_NEW AUTHORS;
+		*pAuthor = m_recRecord;
 
 		oArray.Add(pAuthor);
 	}
@@ -46,11 +45,12 @@ BOOL CAuthorsTable::DeleteRecord(CSession oSession, long lID)
 	if (oArray.GetCount() > 0)
 	{
 		MessageBox(GetActiveWindow(), _T("Трябва първо да изтриете творбите на автора."), _T("Съобщение"), MB_OKCANCEL | MB_ICONQUESTION);
-		oArray.RemoveAll();
+
+		CMemoryManager::FreeMemoryFromArray(oArray, oArray.GetCount());
 		return FALSE;
 	}
 
-	oArray.RemoveAll();
+	CMemoryManager::FreeMemoryFromArray(oArray, oArray.GetCount());
 
 	if (MessageBox(GetActiveWindow(), _T("Сигурни ли сте, че искате да изтриете автора?"), _T("Съобщение"), MB_YESNO | MB_ICONQUESTION) == IDYES)
 	{
@@ -99,7 +99,7 @@ BOOL CAuthorsTable::EditAuthorName(CSession oSession, long lAuthorID, CString st
 
 	AUTHORS oAuthor;
 	oAuthor.lID = lAuthorID;
-	oAuthor.szName = strNewName;
+	_tcscpy_s(oAuthor.szName, strNewName);
 
 	CDBPropSet oUpdateDBPropSet(DBPROPSET_ROWSET);
 	oUpdateDBPropSet.AddProperty(DBPROP_IRowsetChange, true);

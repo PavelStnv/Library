@@ -40,6 +40,8 @@ CLibraryApp theApp;
 
 BOOL CLibraryApp::InitInstance()
 {
+	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
+
 	// InitCommonControlsEx() is required on Windows XP if an application
 	// manifest specifies use of ComCtl32.dll version 6 or later to enable
 	// visual styles.  Otherwise, any window creation will fail.
@@ -71,6 +73,9 @@ BOOL CLibraryApp::InitInstance()
 	// such as the name of your company or organization
 	SetRegistryKey(_T("Local AppWizard-Generated Applications"));
 
+	CMemoryState startMemState, endMemState, diffMemState;
+	startMemState.Checkpoint();
+
 	CLibraryDlg dlg;
 	m_pMainWnd = &dlg;
 	INT_PTR nResponse = dlg.DoModal();
@@ -88,6 +93,18 @@ BOOL CLibraryApp::InitInstance()
 	{
 		TRACE(traceAppMsg, 0, "Warning: dialog creation failed, so application is terminating unexpectedly.\n");
 		TRACE(traceAppMsg, 0, "Warning: if you are using MFC controls on the dialog, you cannot #define _AFX_NO_MFC_CONTROLS_IN_DIALOGS.\n");
+	}
+
+	endMemState.Checkpoint();
+
+	if (diffMemState.Difference(startMemState, endMemState))
+	{
+		TRACE("Memory leak detected!\n");
+		diffMemState.DumpAllObjectsSince();
+	}
+	else
+	{
+		TRACE("No memory leaks detected.\n");
 	}
 
 	// Delete the shell manager created above.
