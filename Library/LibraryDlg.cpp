@@ -62,6 +62,8 @@ CLibraryDlg::CLibraryDlg(CWnd* pParent /*=nullptr*/)
 void CLibraryDlg::DoDataExchange(CDataExchange* pDX)
 {
 	CDialogEx::DoDataExchange(pDX);
+	DDX_Control(pDX, IDC_EDB_AUTHOR_NAME, m_oAuthorName);
+	DDX_Control(pDX, IDC_LSB_AUTHORS, m_oListBox);
 }
 
 BEGIN_MESSAGE_MAP(CLibraryDlg, CDialogEx)
@@ -110,9 +112,6 @@ BOOL CLibraryDlg::OnInitDialog()
 	// TODO: Add extra initialization here
 	CoInitialize(nullptr);
 	ConnectToDB();
-
-	m_oListBox = (CListBox*)GetDlgItem(IDC_LSB_AUTHORS);
-	m_oAuthorName = (CEdit*)GetDlgItem(IDC_EDB_AUTHOR_NAME);
 	
 	return TRUE;  // return TRUE  unless you set the focus to a control
 }
@@ -184,7 +183,7 @@ HRESULT CLibraryDlg::ConnectToDB()
 void CLibraryDlg::OnBnClickedBtnSearch()
 {
 	CString strUserInput;
-	m_oAuthorName->GetWindowTextW(strUserInput);
+	m_oAuthorName.GetWindowTextW(strUserInput);
 	strUserInput = strUserInput.Trim();
 
 	if (strUserInput.IsEmpty())
@@ -195,16 +194,22 @@ void CLibraryDlg::OnBnClickedBtnSearch()
 
 	m_oSession.Open(m_oDataSource);
 
-	CAuthorsTable oAuthorsTable;
 	CTypedPtrArray<CPtrArray, AUTHORS*> oAuthorsArray;
-	oAuthorsTable.SelectAll(oAuthorsArray, m_oSession, strUserInput);
 
-	m_oListBox->ResetContent();
+	if (!m_oAuthorsData.SelectAll(oAuthorsArray, m_oSession, strUserInput))
+	{
+		MessageBox(_T("Грешка при операция с база данни."), _T("Грешка"), MB_OK | MB_ICONEXCLAMATION);
+		m_oSession.Close();
+
+		return;
+	}
+
+	m_oListBox.ResetContent();
 
 	for (int i = 0; i < oAuthorsArray.GetSize(); i++)
 	{
-		m_oListBox->InsertString(i, oAuthorsArray.GetAt(i)->szName);
-		m_oListBox->SetItemData(i, oAuthorsArray.GetAt(i)->lID);
+		m_oListBox.InsertString(i, oAuthorsArray.GetAt(i)->szName);
+		m_oListBox.SetItemData(i, oAuthorsArray.GetAt(i)->lID);
 	}
 
 	if (!m_bForRefresh && oAuthorsArray.GetSize() == 0)
@@ -218,7 +223,7 @@ void CLibraryDlg::OnBnClickedBtnSearch()
 
 void CLibraryDlg::OnOpenAuthor()
 {
-	int curSelID = m_oListBox->GetItemData(m_oListBox->GetCurSel());
+	int curSelID = m_oListBox.GetItemData(m_oListBox.GetCurSel());
 
 	if (curSelID == -1)
 	{
@@ -227,8 +232,8 @@ void CLibraryDlg::OnOpenAuthor()
 	}
 
 	CString authorName;
-	m_oListBox->GetText(m_oListBox->GetCurSel(), authorName);
-	WorksDialog worksDialog(m_oSession, m_oDataSource, authorName, m_oListBox->GetItemData(m_oListBox->GetCurSel()));
+	m_oListBox.GetText(m_oListBox.GetCurSel(), authorName);
+	WorksDialog worksDialog(m_oSession, m_oDataSource, authorName, m_oListBox.GetItemData(m_oListBox.GetCurSel()));
 	worksDialog.FillArray(curSelID);
 	worksDialog.DoModal();
 }
@@ -236,7 +241,7 @@ void CLibraryDlg::OnOpenAuthor()
 
 void CLibraryDlg::OnDeleteAuthor()
 {
-	int curSelID = m_oListBox->GetItemData(m_oListBox->GetCurSel());
+	int curSelID = m_oListBox.GetItemData(m_oListBox.GetCurSel());
 
 	if (curSelID == -1)
 	{
@@ -246,8 +251,13 @@ void CLibraryDlg::OnDeleteAuthor()
 	
 	m_oSession.Open(m_oDataSource);
 
-	CAuthorsTable oAuthorsTable;
-	oAuthorsTable.DeleteRecord(m_oSession, curSelID);
+	if (!m_oAuthorsData.DeleteRecord(m_oSession, curSelID))
+	{
+		MessageBox(_T("Грешка при операция с база данни."), _T("Грешка"), MB_OK | MB_ICONEXCLAMATION);
+		m_oSession.Close();
+
+		return;
+	}
 
 	m_oSession.Close();
 
@@ -269,8 +279,13 @@ void CLibraryDlg::OnBnClickedBtnAddAuthor()
 
 		m_oSession.Open(m_oDataSource);
 
-		CAuthorsTable oAuthorWorksTable;
-		oAuthorWorksTable.InsertRecord(m_oSession, oAuthor);
+		if (!m_oAuthorsData.InsertRecord(m_oSession, oAuthor))
+		{
+			MessageBox(_T("Грешка при операция с база данни."), _T("Грешка"), MB_OK | MB_ICONEXCLAMATION);
+			m_oSession.Close();
+
+			return;
+		}
 
 		m_oSession.Close();
 	}

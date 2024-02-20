@@ -1,6 +1,7 @@
 #pragma once
 #include <atldbcli.h>
 #include "NameOnlyDialog.h"
+#include "AuthorsData.h"
 
 
 class CLibraryDlg : public CDialogEx
@@ -23,10 +24,11 @@ protected:
 	HICON m_hIcon;
 	CDataSource m_oDataSource;
 	CSession m_oSession;
-	CListBox* m_oListBox;
-	CEdit* m_oAuthorName;
+	CListBox m_oListBox;
+	CEdit m_oAuthorName;
 	CNameOnlyDialog m_oNameOnlyDialog;
 	BOOL m_bForRefresh;
+	CAuthorsData m_oAuthorsData;
 
 	// Generated message map functions
 	virtual BOOL OnInitDialog();

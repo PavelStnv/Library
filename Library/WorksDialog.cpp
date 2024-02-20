@@ -25,6 +25,8 @@ WorksDialog::~WorksDialog()
 void WorksDialog::DoDataExchange(CDataExchange* pDX)
 {
 	CDialogEx::DoDataExchange(pDX);
+	DDX_Control(pDX, IDC_LSB_WORKS, m_oWorksListBox);
+	DDX_Control(pDX, IDC_EDB_AUTHOR_NAME2, m_oAuthorName);
 }
 
 BEGIN_MESSAGE_MAP(WorksDialog, CDialogEx)
@@ -69,12 +71,10 @@ BOOL WorksDialog::OnInitDialog()
 	SetIcon(m_hIcon, TRUE);			// Set big icon
 	SetIcon(m_hIcon, FALSE);		// Set small icon
 
-	m_oWorksListBox = (CListBox*)GetDlgItem(IDC_LSB_WORKS);
 	FillLSBWithArray();
-	m_oAuthorName = (CEdit*)GetDlgItem(IDC_EDB_AUTHOR_NAME2);
-	m_oAuthorName->SetWindowTextW(m_strAuthorName);
-	m_oAuthorName->EnableWindow(FALSE);
-	m_oAuthorName->SetLimitText(50);
+	m_oAuthorName.SetWindowTextW(m_strAuthorName);
+	m_oAuthorName.EnableWindow(FALSE);
+	m_oAuthorName.SetLimitText(50);
 	m_eAuthorNameState = AuthorNameStateNotEditting;
 
 	return TRUE;  // return TRUE  unless you set the focus to a control
@@ -120,20 +120,25 @@ void WorksDialog::FillArray(long lAuthorID)
 {
 	m_oSession.Open(m_oDataSource);
 
-	CAuthorWorksTable oAuthorWorksTable;
-	oAuthorWorksTable.SelectWhereID(m_oArray, m_oSession, lAuthorID);
+	if (!m_oAuthorWorksData.SelectWhereID(m_oArray, m_oSession, lAuthorID))
+	{
+		MessageBox(_T("Грешка при операция с база данни."), _T("Грешка"), MB_OK | MB_ICONEXCLAMATION);
+		m_oSession.Close();
+
+		return;
+	}
 
 	m_oSession.Close();
 }
 
 void WorksDialog::FillLSBWithArray()
 {
-	m_oWorksListBox->ResetContent();
+	m_oWorksListBox.ResetContent();
 
 	for (int i = 0; i < m_oArray.GetSize(); i++)
 	{
-		m_oWorksListBox->InsertString(i, m_oArray.GetAt(i)->szName);
-		m_oWorksListBox->SetItemData(i, m_oArray.GetAt(i)->lID);
+		m_oWorksListBox.InsertString(i, m_oArray.GetAt(i)->szName);
+		m_oWorksListBox.SetItemData(i, m_oArray.GetAt(i)->lID);
 	}
 }
 
@@ -158,8 +163,13 @@ void WorksDialog::OnBnClickedEdbAddWork()
 
 		m_oSession.Open(m_oDataSource);
 
-		CAuthorWorksTable oAuthorWorksTable;
-		oAuthorWorksTable.InsertRecord(m_oSession, oAuthorWorks);
+		if (!m_oAuthorWorksData.InsertRecord(m_oSession, oAuthorWorks))
+		{
+			MessageBox(_T("Грешка при операция с база данни."), _T("Грешка"), MB_OK | MB_ICONEXCLAMATION);
+			m_oSession.Close();
+
+			return;
+		}
 
 		m_oSession.Close();
 
@@ -170,7 +180,7 @@ void WorksDialog::OnBnClickedEdbAddWork()
 
 void WorksDialog::OnBnClickedEdbDeleteWork()
 {
-	int curSelID = m_oWorksListBox->GetItemData(m_oWorksListBox->GetCurSel());
+	int curSelID = m_oWorksListBox.GetItemData(m_oWorksListBox.GetCurSel());
 
 	if (curSelID == -1)
 	{
@@ -180,8 +190,13 @@ void WorksDialog::OnBnClickedEdbDeleteWork()
 
 	m_oSession.Open(m_oDataSource);
 
-	CAuthorWorksTable oAuthorWorksTable;
-	oAuthorWorksTable.DeleteRecord(m_oSession, curSelID);
+	if (!m_oAuthorWorksData.DeleteRecord(m_oSession, curSelID))
+	{
+		MessageBox(_T("Грешка при операция с база данни."), _T("Грешка"), MB_OK | MB_ICONEXCLAMATION);
+		m_oSession.Close();
+
+		return;
+	}
 
 	m_oSession.Close();
 
@@ -191,7 +206,7 @@ void WorksDialog::OnBnClickedEdbDeleteWork()
 
 void WorksDialog::OnBnClickedEdbEditWork()
 {
-	int curSelID = m_oWorksListBox->GetItemData(m_oWorksListBox->GetCurSel());
+	int curSelID = m_oWorksListBox.GetItemData(m_oWorksListBox.GetCurSel());
 
 	if (curSelID == -1)
 	{
@@ -200,7 +215,7 @@ void WorksDialog::OnBnClickedEdbEditWork()
 	}
 
 	CString strSelectedWorkName;
-	m_oWorksListBox->GetText(m_oWorksListBox->GetCurSel(), strSelectedWorkName);
+	m_oWorksListBox.GetText(m_oWorksListBox.GetCurSel(), strSelectedWorkName);
 	m_oNameOnlyDialog.m_strName = strSelectedWorkName;
 	m_oNameOnlyDialog.m_bOpenedForAdding = FALSE;
 	m_oNameOnlyDialog.m_strTitle = _T("Редактирай творба.");
@@ -215,8 +230,13 @@ void WorksDialog::OnBnClickedEdbEditWork()
 
 		m_oSession.Open(m_oDataSource);
 
-		CAuthorWorksTable oAuthorWorksTable;
-		oAuthorWorksTable.UpdateRecord(m_oSession, oAuthorWorks);
+		if (!m_oAuthorWorksData.UpdateRecord(m_oSession, oAuthorWorks))
+		{
+			MessageBox(_T("Грешка при операция с база данни."), _T("Грешка"), MB_OK | MB_ICONEXCLAMATION);
+			m_oSession.Close();
+
+			return;
+		}
 
 		m_oSession.Close();
 
@@ -231,8 +251,13 @@ void WorksDialog::OnBnClickedBtnDeleteAllWorks()
 	{
 		m_oSession.Open(m_oDataSource);
 
-		CAuthorWorksTable oAuthorWorksTable;
-		oAuthorWorksTable.DeleteAllAuthorWorks(m_oSession, m_lCurrentAuthorID);
+		if (!m_oAuthorWorksData.DeleteAllAuthorWorks(m_oSession, m_lCurrentAuthorID))
+		{
+			MessageBox(_T("Грешка при операция с база данни."), _T("Грешка"), MB_OK | MB_ICONEXCLAMATION);
+			m_oSession.Close();
+
+			return;
+		}
 
 		m_oSession.Close();
 
@@ -246,26 +271,31 @@ void WorksDialog::OnBnClickedBtnEditAuthorName()
 	// TODO: Add your control notification handler code here
 	if (m_eAuthorNameState == AuthorNameStateNotEditting)
 	{
-		m_oAuthorName->EnableWindow(TRUE);
+		m_oAuthorName.EnableWindow(TRUE);
 		m_eAuthorNameState = AuthorNameStateInProcessOfEditting;
 		SetDlgItemText(IDC_BTN_EDIT_AUTHOR_NAME, _T("Запази"));
 	}
 	else if (m_eAuthorNameState = AuthorNameStateInProcessOfEditting)
 	{
 		CString strNewName;
-		m_oAuthorName->GetWindowTextW(strNewName);
+		m_oAuthorName.GetWindowTextW(strNewName);
 
 		if (m_strAuthorName.Compare(strNewName))
 		{
 			m_oSession.Open(m_oDataSource);
 
-			CAuthorsTable oAuthorsTable;
-			oAuthorsTable.EditAuthorName(m_oSession, m_lCurrentAuthorID, strNewName);
+			if (!m_oAuthorsData.EditAuthorName(m_oSession, m_lCurrentAuthorID, strNewName))
+			{
+				MessageBox(_T("Грешка при операция с база данни."), _T("Грешка"), MB_OK | MB_ICONEXCLAMATION);
+				m_oSession.Close();
+
+				return;
+			}
 
 			m_oSession.Close();
 		}
 
-		m_oAuthorName->EnableWindow(FALSE);
+		m_oAuthorName.EnableWindow(FALSE);
 		m_eAuthorNameState = AuthorNameStateNotEditting;
 		SetDlgItemText(IDC_BTN_EDIT_AUTHOR_NAME, _T("Редактирай"));
 	}

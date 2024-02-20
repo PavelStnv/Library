@@ -2,6 +2,8 @@
 #include <atldbcli.h>
 #include "Structures.h"
 #include "NameOnlyDialog.h"
+#include "AuthorsData.h"
+#include "AuthorWorksData.h"
 
 enum AuthorNameState
 {
@@ -30,13 +32,15 @@ protected:
 	HICON m_hIcon;
 	CSession m_oSession;
 	CTypedPtrArray<CPtrArray, AUTHOR_WORKS*> m_oArray;
-	CListBox* m_oWorksListBox;
+	CListBox m_oWorksListBox;
 	CDataSource m_oDataSource;
 	CString m_strAuthorName;
-	CEdit* m_oAuthorName;
+	CEdit m_oAuthorName;
 	CNameOnlyDialog m_oNameOnlyDialog;
 	long m_lCurrentAuthorID;
 	AuthorNameState m_eAuthorNameState;
+	CAuthorsData m_oAuthorsData;
+	CAuthorWorksData m_oAuthorWorksData;
 
 	// Generated message map functions
 	virtual BOOL OnInitDialog();

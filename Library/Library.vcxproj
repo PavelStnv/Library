@@ -183,8 +183,10 @@
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="AuthorsData.h" />
     <ClInclude Include="AuthorsTable.h" />
     <ClInclude Include="AuthorWorksTable.h" />
+    <ClInclude Include="AuthorWorksData.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="Library.h" />
     <ClInclude Include="LibraryDlg.h" />
@@ -197,8 +199,10 @@
     <ClInclude Include="WorksDialog.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="AuthorsData.cpp" />
     <ClCompile Include="AuthorsTable.cpp" />
     <ClCompile Include="AuthorWorksTable.cpp" />
+    <ClCompile Include="AuthorWorksData.cpp" />
     <ClCompile Include="Library.cpp" />
     <ClCompile Include="LibraryDlg.cpp" />
     <ClCompile Include="NameOnlyDialog.cpp" />
